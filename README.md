@@ -1,12 +1,12 @@
-# Kingtmpemail
-web api for kingtmp.email Forget about spam, advertising mailings, hacking and attacking robots. Keep your real mailbox clean and secure. Temp Mail provides temporary, secure, anonymous, free, disposable email address.
+# Temp_mail_best
+web api for temp-mail.best Forget about spam, advertising mailings, hacking and attacking robots. Keep your real mailbox clean and secure. Temp Mail provides temporary, secure, anonymous, free, disposable email address.
 # main
 ```cpp
-#include "Kingtmpemail.h"
+#include "Temp_mail_best.h"
 #include <iostream>
 
 int main() {
-   Kingtmpemail api;
+   Temp_mail_best api;
     auto email = api.generate_email().then([](json::value result) {
         std::cout << result<< std::endl;
     });
