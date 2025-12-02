@@ -1,5 +1,5 @@
-#ifndef KINGTEMPEMAIL_H
-#define KINGTEMPEMAIL_H
+#ifndef TEMP_MAIL_BEST_H
+#define TEMP_MAIL_BEST_H
 
 #include <cpprest/http_client.h>
 #include <cpprest/json.h>
@@ -13,9 +13,9 @@ using namespace web;
 using namespace web::http;
 using namespace web::http::client;
 
-class Kingtmpemail {
+class Temp_mail_best {
 private:
-    std::string api_base = "https://api.kingtmp.email/api/web";
+    std::string api_base = "https://temp-mail.best/api";
     http_client_config client_config;
     std::string auth_token; 
     http_request create_request(const std::string& endpoint, const std::string& method, const std::string& data = "") {
@@ -36,7 +36,7 @@ private:
         request.headers().add(U("User-Agent"), U("Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0"));
         
         if (!auth_token.empty()) {
-            request.headers().add(U("Authorization"),utility::conversions::to_string_t(auth_token));
+            request.headers().add(U("Cookie"),utility::conversions::to_string_t(auth_token));
         }
         if (!data.empty() && (method == "POST" || method == "PUT")) {
             request.set_body(data);
@@ -91,20 +91,33 @@ private:
     }
 
 public:
-    Kingtmpemail() {
+    Temp_mail_best() {
         client_config.set_validate_certificates(false);
     }
 
     pplx::task<json::value> generate_email() {
-        return make_api_call("/newmail", "GET")
-            .then([this](json::value response) {
-                    auth_token = response.at("newmail").at("access_token").as_string();
-                return response;
+        
+        http_client client(utility::conversions::to_string_t(api_base), client_config);
+        auto request = create_request("/mailbox/sync", "GET", "");
+
+        return client.request(request).then([this](http_response response) {
+                    auto auth_token = response.headers().find("Set-Cookie");
+                return response.extract_json();
             });
     }
 
+    pplx::task<json::value> delete_email() {
+        return make_api_call("/mailbox/dispose", "GET");
+    }
+
     pplx::task<json::value> get_mails() {
-        return make_api_call("/preview/mails", "GET");
+        return make_api_call("/mailbox/sync", "GET");
+    }
+
+    pplx::task<json::value> clean_mails() {
+        json::value data;
+        data[U("uid")] = json::value(utility::conversions::to_string_t(""));
+        return make_api_call("/mailbox/clean", "POST", data.serialize());
     }
 };
 
